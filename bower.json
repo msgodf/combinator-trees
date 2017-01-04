@@ -1,0 +1,17 @@
+{
+  "name": "mypure",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "dependencies": {
+    "purescript-lists": "^3.3.0",
+    "purescript-functions": "^2.0.0",
+      "d3-selection": "^1.0.3"
+  },
+  "devDependencies": {
+    "purescript-psci-support": "^2.0.0"
+  }
+}
