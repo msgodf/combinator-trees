@@ -34,15 +34,15 @@ instance nodeDataIsForeign :: (IsForeign a) => IsForeign (NodeData a) where
 
 
 data MyTree = MyTree { name :: String,
-                       children :: Maybe (Array MyTree) }
+                       children :: (Array MyTree) }
 
 instance myTreeShow :: Show MyTree where
   show (MyTree {name:name,children:children}) = "name: " <> show name <> ", children: " <> show children
 
 instance myTreeAsForeign :: AsForeign MyTree where
-  write (MyTree { name: name, children: Nothing}) = writeObject [ "name" .= name
+  write (MyTree { name: name, children: []}) = writeObject [ "name" .= name
                                 ]
-  write (MyTree { name: name, children: Just children}) = writeObject [ "name" .= name
+  write (MyTree { name: name, children: children}) = writeObject [ "name" .= name
                                 , "children" .= children
                                 ]
 
@@ -51,8 +51,8 @@ instance myTreeIsForeign :: IsForeign MyTree where
     name <- readProp "name" x
     -- Optional "children" element, gets converted into Maybe
     case (readProp "children" x) of
-      Left _ -> pure $ MyTree { name: name, children: Nothing }
-      Right children -> pure $ MyTree { name: name, children: (Just children) }
+      Left _ -> pure $ MyTree { name: name, children: [] }
+      Right children -> pure $ MyTree { name: name, children: children }
 
   -- {
   --   "name": "Top Level",
@@ -68,19 +68,15 @@ instance myTreeIsForeign :: IsForeign MyTree where
   --   ]
   -- };
 
--- Would prefer to express the absence of children here
--- as an empty list, and get the serialization to JSON to
--- ignore it if it's empty.
 treeData :: Foreign
 treeData = write
             (MyTree { name: "Top Level",
-                      children: (Just [
-                                    (MyTree { name: "Level 2: A",
-                                          children: (Just [(MyTree { name: "Son of A",
-                                                                     children: Nothing }),
-                                                           (MyTree {name: "Daughter of A", children: Nothing })])}),
-                                    (MyTree { name: "Level 2: B",
-                                              children: Nothing})])})
+                      children: [(MyTree { name: "Level 2: A",
+                                           children: [(MyTree { name: "Son of A",
+                                                                children: []}),
+                                                      (MyTree {name: "Daughter of A", children: []})]}),
+                                (MyTree { name: "Level 2: B",
+                                          children: []})]})
 
 xyTranslate :: Foreign -> String
 xyTranslate val = case (read val) of
