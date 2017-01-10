@@ -68,42 +68,47 @@ instance myTreeIsForeign :: IsForeign MyTree where
   --   ]
   -- };
 
+data SimpleTree a = Leaf a | Branch a (Array (SimpleTree a))
+
+simpleTToMyTree :: (SimpleTree String) -> MyTree
+simpleTToMyTree (Branch x y) = (MyTree { name: x, children: (map simpleTToMyTree y)})
+simpleTToMyTree (Leaf x) = (MyTree { name: x, children: [] })
+
 treeData :: Foreign
-treeData = write
-            (MyTree { name: "Top Level",
-                      children: [(MyTree { name: "Level 2: A",
-                                           children: [(MyTree { name: "Son of A",
-                                                                children: []}),
-                                                      (MyTree {name: "Daughter of A", children: []})]}),
-                                (MyTree { name: "Level 2: B",
-                                          children: []})]})
+treeData = write $
+           simpleTToMyTree (Branch "TopLevel"
+                                   [(Branch "Level 2: A"
+                                            [(Leaf "Son of A"),
+                                             (Leaf "Daughter of A")]),
+                                   (Leaf "Level 2: B")])
 
 xyTranslate :: Foreign -> String
 xyTranslate val = case (read val) of
                        Left err -> "translate(0,0)"
                        Right (TreeNodeData d :: (TreeNodeData MyTree)) ->
-                         let dx = d.x * 300.0
-                             dy = d.y * 300.0 in
-                         "translate(" <> (show dy) <> "," <> (show dx) <> ")"
+                         let dx = d.x * 400.0
+                             dy = d.y * 200.0 in
+                         "translate(" <> (show dx) <> "," <> (show dy) <> ")"
 
 diagonal :: forall a. (TreeNodeData a) -> (TreeNodeData a) -> String
 diagonal (TreeNodeData source) (TreeNodeData dest) =
-  let sx = source.x * 300.0
-      sy = source.y * 300.0
-      dx = dest.x * 300.0
-      dy = dest.y * 300.0 in
-      "M " <> (show sy) <> " " <> (show sx) <> " " <>
-      "C " <> (show ((sy + dy) / 2.0)) <> " " <> (show sx) <> ", "
-           <> (show ((sy + dy) / 2.0)) <> " " <> (show dx) <> ", "
-           <> (show dy) <> " " <> (show dx)
+  let sx = source.x * 400.0
+      sy = source.y * 200.0
+      dx = dest.x * 400.0
+      dy = dest.y * 200.0 in
+      "M " <> (show sx) <> " " <> (show sy) <> " " <>
+      "C " <> (show ((sx + dx) / 2.0)) <> " " <> (show dy) <> ", "
+           <> (show ((sx + dx) / 2.0)) <> " " <> (show dy) <> ", "
+           <> (show dx) <> " " <> (show dy)
 
-diag :: Foreign -> String
-diag s = do
+parentChildLink :: Foreign -> String
+parentChildLink s = do
   case (read s) of
     Left err -> ""
     Right (TreeNodeData source :: (TreeNodeData MyTree)) -> case (source.parent) of
         Nothing -> ""
-        Just (TreeNodeData parent :: (TreeNodeData MyTree)) -> diagonal (TreeNodeData source) (TreeNodeData parent)
+        Just (TreeNodeData parent :: (TreeNodeData MyTree)) -> diagonal (TreeNodeData source)
+                                                                        (TreeNodeData parent)
 
 main :: forall e. Eff (d3 :: D3, console :: CONSOLE | e) (Selection Void)
 main = do
