@@ -10,9 +10,9 @@ import Control.Monad.Eff.Console (CONSOLE)
 import Data.Function.Uncurried (Fn1, runFn1)
 import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
-import Data.Foreign (Foreign, writeObject, ForeignError)
+import Data.Foreign (Foreign, writeObject, ForeignError(..))
 import Data.Foreign.Class (class AsForeign, read, class IsForeign, (.=), readProp, write)
-import Data.Array (tail)
+import Data.Array (tail,length)
 
 -- Helper function that calls console.log with anything
 foreign import logAnythingImpl :: forall a e. (Fn1 a (Eff (console :: CONSOLE | e) Unit))
@@ -43,40 +43,28 @@ fillBranchesAndLeaves f = case ((read f) :: (Either ForeignError (BranchOrLeaf (
   Right LeafNode -> "green"
   Right (BranchNode _) -> "red"
 
-  -- {
-  --   "name": "Top Level",
-  --   "children": [
-  --     {
-  --       "name": "Level 2: A",
-  --       "children": [
-  --         { "name": "Son of A" },
-  --         { "name": "Daughter of A" }
-  --       ]
-  --     },
-  --     { "name": "Level 2: B" }
-  --   ]
-  -- };
-
-data SimpleTree a = Leaf a | Branch a (Array (SimpleTree a))
+data SimpleTree a = Leaf a | Branch (SimpleTree a) (SimpleTree a)
 
 instance simpleTreeAsForeign :: AsForeign a => AsForeign (SimpleTree a) where
   write (Leaf name) = writeObject ["name" .= name]
-  write (Branch name children) = writeObject [ "name" .= name
-                                             ,"children" .= children ]
+  write (Branch left right) = writeObject [ "name" .= ""
+                                           ,"children" .= [left, right]]
 
 instance simpleTreeIsForeign :: IsForeign a => IsForeign (SimpleTree a) where
   read x = do
     name <- readProp "name" x
     case (readProp "children" x) of
       Left _ -> pure $ Leaf name
-      Right children -> pure $ Branch name children
+      Right [left,right] -> pure $ Branch left right
+      Right xs -> Left $ TypeMismatch "Array with two elements"
+                                      ("Array with " <> (show $ length xs) <> " elements")
 
 treeData :: Foreign
-treeData = write (Branch ""
-                         [(Branch ""
-                                  [(Leaf "B"),
-                                   (Leaf "x")]),
-                          (Leaf "y")])
+treeData = write (Branch
+                        (Branch
+                                (Leaf "B")
+                                (Leaf "x"))
+                        (Leaf "y"))
 
 xyTranslate :: Foreign -> String
 xyTranslate val = case (read val) of
