@@ -111,9 +111,7 @@ diagonal (TreeNodeData source) (TreeNodeData dest) =
       dx = dest.x * 400.0
       dy = dest.y * 200.0 in
       "M " <> (show sx) <> " " <> (show sy) <> " " <>
-      "C " <> (show ((sx + dx) / 2.0)) <> " " <> (show dy) <> ", "
-           <> (show ((sx + dx) / 2.0)) <> " " <> (show dy) <> ", "
-           <> (show dx) <> " " <> (show dy)
+      "L " <> (show dx) <> " " <> (show dy)
 
 parentChildLink :: Foreign -> String
 parentChildLink s = do
