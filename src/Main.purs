@@ -82,17 +82,28 @@ instance myTreeIsForeign :: IsForeign MyTree where
 
 data SimpleTree a = Leaf a | Branch a (Array (SimpleTree a))
 
+instance simpleTreeAsForeign :: AsForeign a => AsForeign (SimpleTree a) where
+  write (Leaf name) = writeObject ["name" .= name]
+  write (Branch name children) = writeObject [ "name" .= name
+                                             ,"children" .= children ]
+
+instance simpleTreeIsForeign :: IsForeign a => IsForeign (SimpleTree a) where
+  read x = do
+    name <- readProp "name" x
+    case (readProp "children" x) of
+      Left _ -> pure $ Leaf name
+      Right children -> pure $ Branch name children
+
 simpleTToMyTree :: (SimpleTree String) -> MyTree
 simpleTToMyTree (Branch x y) = (MyTree { name: x, children: (map simpleTToMyTree y)})
 simpleTToMyTree (Leaf x) = (MyTree { name: x, children: [] })
 
 treeData :: Foreign
-treeData = write $
-           simpleTToMyTree (Branch "TopLevel"
-                                   [(Branch "Level 2: A"
-                                            [(Leaf "Son of A"),
-                                             (Leaf "Daughter of A")]),
-                                   (Leaf "Level 2: B")])
+treeData = write (Branch ""
+                         [(Branch ""
+                                  [(Leaf "B"),
+                                   (Leaf "x")]),
+                          (Leaf "y")])
 
 xyTranslate :: Foreign -> String
 xyTranslate val = case (read val) of
