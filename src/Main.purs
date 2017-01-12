@@ -10,7 +10,7 @@ import Control.Monad.Eff.Console (CONSOLE)
 import Data.Function.Uncurried (Fn1, runFn1)
 import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
-import Data.Foreign (Foreign, writeObject)
+import Data.Foreign (Foreign, writeObject, ForeignError)
 import Data.Foreign.Class (class AsForeign, read, class IsForeign, (.=), readProp, write)
 import Data.Array (tail)
 
@@ -32,6 +32,20 @@ instance nodeDataIsForeign :: (IsForeign a) => IsForeign (NodeData a) where
     data' <- readProp "data" x
     pure $ NodeData {data': data'}
 
+-- A simple type to deserialize to depending on the presence of a "children" field
+data TND a = TNDN | TNDC (Array (TND a))
+
+-- I think there's something important about the type of ch here.
+instance tndIsForeign :: IsForeign a => IsForeign (TND a) where
+  read x = case (readProp "children" x) of
+        Left _ -> pure TNDN
+        Right ch -> pure (TNDC ch)
+
+fillBranchesAndLeaves :: Foreign -> String
+fillBranchesAndLeaves f = case ((read f) :: (Either ForeignError (TND MyTree))) of
+  Left err -> "blue"
+  Right TNDN -> "green"
+  Right (TNDC _) -> "red"
 
 data MyTree = MyTree { name :: String,
                        children :: (Array MyTree) }
@@ -143,6 +157,7 @@ main = do
      attr circle "class" (ValString "node")
      attr circle "r" (ValString "10")
      style circle "fill" "black"
+     style circle "fill" (ValFn fillBranchesAndLeaves)
 
      circleText <- append' grn "text"
      attr circleText "dy" (ValString ".35em")
@@ -159,6 +174,7 @@ main = do
                path <- insert linkPaths (ValString "path") "g"
                p <- attr path "class" (ValString "link")
                attr p "d" (ValFn (\d -> diag d))
-               style p "stroke" "#555"
-               style p "stroke-width" "3px"
-               style p "fill" "none"
+               attr p "d" (ValFn parentChildLink)
+               style p "stroke" (ValString "#555")
+               style p "stroke-width" (ValString "3px")
+               style p "fill" (ValString "none")

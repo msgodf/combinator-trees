@@ -31,8 +31,8 @@ foreign import insertImpl :: forall a b c e. Fn3 a (Value b c) String (Eff (d3 :
 insert :: forall a b c e. a -> (Value b c) -> String -> Eff (d3 :: D3 | e) a
 insert = runFn3 insertImpl
 
-foreign import styleImpl :: forall a e. Fn3 a String String (Eff (d3 :: D3 | e) a)
-style :: forall a e. a -> String -> String -> Eff (d3 :: D3 | e) a
+foreign import styleImpl :: forall a b c e. Fn3 a String (Value b c) (Eff (d3 :: D3 | e) a)
+style :: forall a b c e. a -> String -> (Value b c) -> Eff (d3 :: D3 | e) a
 style = runFn3 styleImpl
 
 foreign import appendImpl :: forall a e. Fn2 a String (Eff (d3 :: D3 | e) a)

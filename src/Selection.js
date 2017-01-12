@@ -45,7 +45,7 @@ exports.attrImpl = function(x,name,value) {
 
 exports.styleImpl = function(x,name,value) {
     return function() {
-	return x.style(name,value);
+	return x.style(name,value.value0);
     }
 }
 
