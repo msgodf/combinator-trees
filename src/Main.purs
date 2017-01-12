@@ -40,31 +40,10 @@ instance tndIsForeign :: IsForeign a => IsForeign (BranchOrLeaf a) where
         Right ch -> pure (BranchNode ch)
 
 fillBranchesAndLeaves :: Foreign -> String
-fillBranchesAndLeaves f = case ((read f) :: (Either ForeignError (BranchOrLeaf (Array (BranchOrLeaf MyTree))))) of
+fillBranchesAndLeaves f = case ((read f) :: (Either ForeignError (BranchOrLeaf (Array (BranchOrLeaf (SimpleTree String)))))) of
   Left err -> "blue"
   Right LeafNode -> "green"
   Right (BranchNode _) -> "red"
-
-data MyTree = MyTree { name :: String,
-                       children :: (Array MyTree) }
-
-instance myTreeShow :: Show MyTree where
-  show (MyTree {name:name,children:children}) = "name: " <> show name <> ", children: " <> show children
-
-instance myTreeAsForeign :: AsForeign MyTree where
-  write (MyTree { name: name, children: []}) = writeObject [ "name" .= name
-                                ]
-  write (MyTree { name: name, children: children}) = writeObject [ "name" .= name
-                                , "children" .= children
-                                ]
-
-instance myTreeIsForeign :: IsForeign MyTree where
-  read x = do
-    name <- readProp "name" x
-    -- Optional "children" element, gets converted into Maybe
-    case (readProp "children" x) of
-      Left _ -> pure $ MyTree { name: name, children: [] }
-      Right children -> pure $ MyTree { name: name, children: children }
 
   -- {
   --   "name": "Top Level",
@@ -94,10 +73,6 @@ instance simpleTreeIsForeign :: IsForeign a => IsForeign (SimpleTree a) where
       Left _ -> pure $ Leaf name
       Right children -> pure $ Branch name children
 
-simpleTToMyTree :: (SimpleTree String) -> MyTree
-simpleTToMyTree (Branch x y) = (MyTree { name: x, children: (map simpleTToMyTree y)})
-simpleTToMyTree (Leaf x) = (MyTree { name: x, children: [] })
-
 treeData :: Foreign
 treeData = write (Branch ""
                          [(Branch ""
@@ -108,7 +83,7 @@ treeData = write (Branch ""
 xyTranslate :: Foreign -> String
 xyTranslate val = case (read val) of
                        Left err -> "translate(0,0)"
-                       Right (TreeNodeData d :: (TreeNodeData MyTree)) ->
+                       Right (TreeNodeData d :: (TreeNodeData (SimpleTree String))) ->
                          let dx = d.x * 400.0
                              dy = d.y * 200.0 in
                          "translate(" <> (show dx) <> "," <> (show dy) <> ")"
@@ -126,10 +101,10 @@ parentChildLink :: Foreign -> String
 parentChildLink s = do
   case (read s) of
     Left err -> ""
-    Right (TreeNodeData source :: (TreeNodeData MyTree)) -> case (source.parent) of
+    Right (TreeNodeData source :: (TreeNodeData (SimpleTree String))) -> case (source.parent) of
         Nothing -> ""
-        Just (TreeNodeData parent :: (TreeNodeData MyTree)) -> diagonal (TreeNodeData source)
-                                                                        (TreeNodeData parent)
+        Just (TreeNodeData parent :: (TreeNodeData (SimpleTree String))) -> diagonal (TreeNodeData source)
+                                                                                     (TreeNodeData parent)
 
 main :: forall e. Eff (d3 :: D3, console :: CONSOLE | e) (Selection Void)
 main = do
