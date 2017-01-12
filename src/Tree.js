@@ -20,7 +20,6 @@ exports.runTreeImpl = function(tree,hierarchy) {
 
 exports.nodesImpl = function(tree) {
     return function() {
-
 	return tree.nodes();
     }
 }
@@ -45,9 +44,6 @@ exports.hierarchyChildrenImpl = function(data,childrenFn) {
 
 exports.descendantsImpl = function(rootHierarchy) {
     return function() {
-
-	var s = rootHierarchy.descendants();
-	console.log(s);
-	return s;
+	return rootHierarchy.descendants();
     }
 }

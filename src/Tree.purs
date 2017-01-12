@@ -7,8 +7,8 @@ import Data.Function.Uncurried (Fn0, runFn0, Fn1, runFn1, Fn2, runFn2)
 import Data.Show
 import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
-import Data.Foreign (Foreign, writeObject, ForeignError)
-import Data.Foreign.Class (class AsForeign, read, class IsForeign, (.=), readProp, write)
+import Data.Foreign (writeObject)
+import Data.Foreign.Class (class AsForeign, class IsForeign, (.=), readProp, write)
 
 foreign import data HierarchyTree :: *
 foreign import data Hierarchy :: *
