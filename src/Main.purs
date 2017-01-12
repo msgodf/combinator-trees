@@ -42,7 +42,7 @@ instance tndIsForeign :: IsForeign a => IsForeign (TND a) where
         Right ch -> pure (TNDC ch)
 
 fillBranchesAndLeaves :: Foreign -> String
-fillBranchesAndLeaves f = case ((read f) :: (Either ForeignError (TND MyTree))) of
+fillBranchesAndLeaves f = case ((read f) :: (Either ForeignError (TND (Array (TND MyTree))))) of
   Left err -> "blue"
   Right TNDN -> "green"
   Right (TNDC _) -> "red"
