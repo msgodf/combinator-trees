@@ -14,8 +14,6 @@ import Data.Foreign (Foreign, writeObject, ForeignError)
 import Data.Foreign.Class (class AsForeign, read, class IsForeign, (.=), readProp, write)
 import Data.Array (tail)
 
--- not sure how to define typeclass instances for extensible records - it works for show, but not IsForeign?
-
 -- Helper function that calls console.log with anything
 foreign import logAnythingImpl :: forall a e. (Fn1 a (Eff (console :: CONSOLE | e) Unit))
 logAnything :: forall a e. a -> (Eff (console :: CONSOLE | e) Unit)
@@ -138,12 +136,13 @@ main = do
      circle <- append' grn "circle"
      attr circle "class" (ValString "node")
      attr circle "r" (ValString "10")
-     style circle "fill" "black"
      style circle "fill" (ValFn fillBranchesAndLeaves)
+     style circle "stroke" (ValString "#555")
+     style circle "stroke-width" (ValString "2px")
 
      circleText <- append' grn "text"
-     attr circleText "dy" (ValString ".35em")
-     attr circleText "x" (ValString "13")
+     attr circleText "dy" (ValString "10px")
+     attr circleText "x" (ValString "24")
      attr circleText "text-anchor" (ValString "end")
      text circleText (ValFn (\d -> d.data.name))
 
@@ -155,7 +154,6 @@ main = do
                linkPaths <- enter link
                path <- insert linkPaths (ValString "path") "g"
                p <- attr path "class" (ValString "link")
-               attr p "d" (ValFn (\d -> diag d))
                attr p "d" (ValFn parentChildLink)
                style p "stroke" (ValString "#555")
                style p "stroke-width" (ValString "3px")
