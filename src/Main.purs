@@ -32,20 +32,18 @@ instance nodeDataIsForeign :: (IsForeign a) => IsForeign (NodeData a) where
     data' <- readProp "data" x
     pure $ NodeData {data': data'}
 
--- A simple type to deserialize to depending on the presence of a "children" field
-data TND a = TNDN | TNDC (Array (TND a))
+data BranchOrLeaf a = LeafNode | BranchNode a
 
--- I think there's something important about the type of ch here.
-instance tndIsForeign :: IsForeign a => IsForeign (TND a) where
+instance tndIsForeign :: IsForeign a => IsForeign (BranchOrLeaf a) where
   read x = case (readProp "children" x) of
-        Left _ -> pure TNDN
-        Right ch -> pure (TNDC ch)
+        Left _ -> pure LeafNode
+        Right ch -> pure (BranchNode ch)
 
 fillBranchesAndLeaves :: Foreign -> String
-fillBranchesAndLeaves f = case ((read f) :: (Either ForeignError (TND (Array (TND MyTree))))) of
+fillBranchesAndLeaves f = case ((read f) :: (Either ForeignError (BranchOrLeaf (Array (BranchOrLeaf MyTree))))) of
   Left err -> "blue"
-  Right TNDN -> "green"
-  Right (TNDC _) -> "red"
+  Right LeafNode -> "green"
+  Right (BranchNode _) -> "red"
 
 data MyTree = MyTree { name :: String,
                        children :: (Array MyTree) }

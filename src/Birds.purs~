@@ -1,0 +1,13 @@
+module Birds where
+
+applyLeftmostBird :: (Tree Comb) -> (Tree Comb)
+applyLeftmostBird (Branch (Branch (Branch (Leaf B) x) y) z) = (Branch x (Branch y z)) -- Bluebird
+applyLeftmostBird (Branch (Branch (Leaf T) x) y) = (Branch y x) -- Thrush
+applyLeftmostBird (Branch (Leaf M) x) = (Branch x x) -- Mockingbird
+applyLeftmostBird (Leaf x) = (Leaf x)
+applyLeftmostBird (Branch x y) = (Branch (applyLeftmostBird x) y)
+
+nBluebirds :: Int -> (Tree Comb)
+nBluebirds x = f x (Leaf B)
+  where f 0 r = r
+        f n r = (Branch (f (n-1) r) r)
