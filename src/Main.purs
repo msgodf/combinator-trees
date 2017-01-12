@@ -32,7 +32,7 @@ instance nodeDataIsForeign :: (IsForeign a) => IsForeign (NodeData a) where
 
 data BranchOrLeaf a = LeafNode | BranchNode a
 
-instance tndIsForeign :: IsForeign a => IsForeign (BranchOrLeaf a) where
+instance branchOrLeafIsForeign :: IsForeign a => IsForeign (BranchOrLeaf a) where
   read x = case (readProp "children" x) of
         Left _ -> pure LeafNode
         Right ch -> pure (BranchNode ch)
