@@ -8,11 +8,13 @@ import Prelude (class Show, Unit, Void, bind, pure, show, ($), (<>),(*),(/),(+))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
 import Data.Function.Uncurried (Fn1, runFn1)
+import Data.List.NonEmpty (NonEmptyList)
 import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
-import Data.Foreign (Foreign, writeObject, ForeignError(..))
+import Data.Foreign (Foreign, writeObject, ForeignError(..),fail)
 import Data.Foreign.Class (class AsForeign, read, class IsForeign, (.=), readProp, write)
 import Data.Array (tail,length)
+import Control.Monad.Except (runExcept)
 
 -- Helper function that calls console.log with anything
 foreign import logAnythingImpl :: forall a e. (Fn1 a (Eff (console :: CONSOLE | e) Unit))
@@ -33,16 +35,20 @@ instance nodeDataIsForeign :: (IsForeign a) => IsForeign (NodeData a) where
 data BranchOrLeaf a = LeafNode | BranchNode a
 
 instance branchOrLeafIsForeign :: IsForeign a => IsForeign (BranchOrLeaf a) where
-  read x = case (readProp "children" x) of
+  read x = case (runExcept (readProp "children" x)) of
         Left _ -> pure LeafNode
         Right ch -> pure (BranchNode ch)
 
+
+-- This is the type signaure that irks me the most
 fillBranchesAndLeaves :: Foreign -> String
-fillBranchesAndLeaves f = case ((read f) :: (Either ForeignError (BranchOrLeaf (Array (BranchOrLeaf (SimpleTree String)))))) of
+fillBranchesAndLeaves f = case ((runExcept (read f)) :: (Either (NonEmptyList ForeignError)
+                                                                (BranchOrLeaf (Array (BranchOrLeaf (SimpleTree String)))))) of
   Left err -> "blue"
   Right LeafNode -> "green"
   Right (BranchNode _) -> "red"
 
+-- Leaf nodes are just values, branches are left and right subtrees
 data SimpleTree a = Leaf a | Branch (SimpleTree a) (SimpleTree a)
 
 instance simpleTreeAsForeign :: AsForeign a => AsForeign (SimpleTree a) where
@@ -53,10 +59,10 @@ instance simpleTreeAsForeign :: AsForeign a => AsForeign (SimpleTree a) where
 instance simpleTreeIsForeign :: IsForeign a => IsForeign (SimpleTree a) where
   read x = do
     name <- readProp "name" x
-    case (readProp "children" x) of
+    case (runExcept (readProp "children" x)) of
       Left _ -> pure $ Leaf name
       Right [left,right] -> pure $ Branch left right
-      Right xs -> Left $ TypeMismatch "Array with two elements"
+      Right xs -> fail $ TypeMismatch "Array with two elements"
                                       ("Array with " <> (show $ length xs) <> " elements")
 
 treeData :: Foreign
@@ -67,12 +73,13 @@ treeData = write (Branch
                         (Leaf "y"))
 
 xyTranslate :: Foreign -> String
-xyTranslate val = case (read val) of
-                       Left err -> "translate(0,0)"
-                       Right (TreeNodeData d :: (TreeNodeData (SimpleTree String))) ->
-                         let dx = d.x * 400.0
-                             dy = d.y * 200.0 in
-                         "translate(" <> (show dx) <> "," <> (show dy) <> ")"
+xyTranslate val =
+  case (runExcept (read val)) of
+       Left err -> "translate(0,0)"
+       Right (TreeNodeData d :: (TreeNodeData (SimpleTree String))) ->
+             let dx = d.x * 400.0
+                 dy = d.y * 200.0 in
+             "translate(" <> (show dx) <> "," <> (show dy) <> ")"
 
 diagonal :: forall a. (TreeNodeData a) -> (TreeNodeData a) -> String
 diagonal (TreeNodeData source) (TreeNodeData dest) =
@@ -85,7 +92,7 @@ diagonal (TreeNodeData source) (TreeNodeData dest) =
 
 parentChildLink :: Foreign -> String
 parentChildLink s = do
-  case (read s) of
+  case (runExcept (read s)) of
     Left err -> ""
     Right (TreeNodeData source :: (TreeNodeData (SimpleTree String))) -> case (source.parent) of
         Nothing -> ""

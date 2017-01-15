@@ -3,6 +3,7 @@ module Tree where
 import Prelude (bind,($),pure,(<>))
 import Base (D3)
 import Control.Monad.Eff (Eff)
+import Control.Monad.Except (runExcept)
 import Data.Function.Uncurried (Fn0, runFn0, Fn1, runFn1, Fn2, runFn2)
 import Data.Show
 import Data.Maybe (Maybe(..))
@@ -28,7 +29,7 @@ instance treeNodeDataIsForeign :: (IsForeign a) => IsForeign (TreeNodeData a) wh
     data' <- readProp "data" x
     x' <- readProp "x" x
     y' <- readProp "y" x
-    case (readProp "parent" x) of
+    case (runExcept (readProp "parent" x)) of
       Left _ -> pure $ TreeNodeData {data': data', x: x', y: y', parent: Nothing}
       Right p ->
         pure $ (TreeNodeData {data': data', x: x', y: y', parent: (Just p)})
