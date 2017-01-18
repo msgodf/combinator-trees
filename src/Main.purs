@@ -96,14 +96,14 @@ parentChildLink s = do
         Just (TreeNodeData parent :: (TreeNodeData (SimpleTree String))) -> diagonal (TreeNodeData source)
                                                                                      (TreeNodeData parent)
 
-main :: forall e. Eff (d3 :: D3, console :: CONSOLE | e) (Selection Void)
-main = do
+drawTree :: forall a e. Foreign -> Eff (d3 :: D3 | e) a
+drawTree treeData' = do
      let width = "600px"
          height = "600px"
 
      treeMap <- tree
 
-     h <- hierarchyChildren treeData  (\d -> d.children)
+     h <- hierarchyChildren treeData'  (\d -> d.children)
 
      theTree <- runTree treeMap h
 
@@ -150,3 +150,6 @@ main = do
                style p "stroke" (ValString "#555")
                style p "stroke-width" (ValString "3px")
                style p "fill" (ValString "none")
+
+main :: forall e. Eff (d3 :: D3, console :: CONSOLE | e) (Selection Void)
+main = drawTree treeData
