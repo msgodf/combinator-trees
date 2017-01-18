@@ -8,10 +8,9 @@ import Prelude (class Show, Unit, Void, bind, pure, show, ($), (<>),(*),(/),(+))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
 import Data.Function.Uncurried (Fn1, runFn1)
-import Data.List.NonEmpty (NonEmptyList)
 import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
-import Data.Foreign (Foreign, writeObject, ForeignError(..),fail)
+import Data.Foreign (F, Foreign, ForeignError(..), writeObject, fail)
 import Data.Foreign.Class (class AsForeign, read, class IsForeign, (.=), readProp, write)
 import Data.Array (tail,length)
 import Control.Monad.Except (runExcept)
@@ -20,7 +19,6 @@ import Control.Monad.Except (runExcept)
 foreign import logAnythingImpl :: forall a e. (Fn1 a (Eff (console :: CONSOLE | e) Unit))
 logAnything :: forall a e. a -> (Eff (console :: CONSOLE | e) Unit)
 logAnything = (runFn1 logAnythingImpl)
-
 
 data NodeData a = NodeData {data':: a}
 
@@ -42,8 +40,7 @@ instance branchOrLeafIsForeign :: IsForeign a => IsForeign (BranchOrLeaf a) wher
 
 -- This is the type signaure that irks me the most
 fillBranchesAndLeaves :: Foreign -> String
-fillBranchesAndLeaves f = case ((runExcept (read f)) :: (Either (NonEmptyList ForeignError)
-                                                                (BranchOrLeaf (Array (BranchOrLeaf (SimpleTree String)))))) of
+fillBranchesAndLeaves f = case (runExcept ((read f) :: (F (BranchOrLeaf (Array (BranchOrLeaf (SimpleTree String))))))) of
   Left err -> "blue"
   Right LeafNode -> "green"
   Right (BranchNode _) -> "red"
