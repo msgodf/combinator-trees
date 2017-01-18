@@ -1,10 +1,12 @@
-module Main where
+module Main ( main
+            , drawTreeForExpression) where
 
+import Parsing as P
 import Base (D3,Value(..))
 import Selection (rootSelect,Selection,append',attr,selectAll,data',enter,style,text,insert)
 import Tree (TreeNodeData(..),tree,hierarchyChildren,runTree,descendants)
 
-import Prelude (class Show, Unit, Void, bind, pure, show, ($), (<>),(*),(/),(+))
+import Prelude (class Show, Unit, Void, bind, pure, show, ($), (<>), (*))
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
 import Data.Function.Uncurried (Fn1, runFn1)
@@ -44,6 +46,15 @@ fillBranchesAndLeaves f = case (runExcept ((read f) :: (F (BranchOrLeaf (Array (
   Left err -> "blue"
   Right LeafNode -> "green"
   Right (BranchNode _) -> "red"
+
+drawTreeForExpression :: forall a e. String -> Eff (d3 :: D3 | e) a
+drawTreeForExpression x = case (P.parseTreeExpression x) of
+  Left err -> drawTree $ write $ Branch (Leaf "Oh Dear") (Leaf ":(")
+  Right t -> drawTree $ write $ parseTreeToSimpleTree t
+
+parseTreeToSimpleTree :: (P.Tree P.Symbol) -> (SimpleTree String)
+parseTreeToSimpleTree (P.Branch left right) = Branch (parseTreeToSimpleTree left) (parseTreeToSimpleTree right)
+parseTreeToSimpleTree (P.Leaf val) = Leaf $ show val
 
 -- Leaf nodes are just values, branches are left and right subtrees
 data SimpleTree a = Leaf a | Branch (SimpleTree a) (SimpleTree a)
