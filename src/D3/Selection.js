@@ -2,7 +2,7 @@
 
 "use strict";
 
-// Module Selection
+// Module D3.Selection
 
 var selection = require("d3-selection");
 

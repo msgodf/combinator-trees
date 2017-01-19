@@ -1,4 +1,4 @@
-module Selection
+module D3.Selection
        ( rootSelect
        , attr
        , insert
@@ -11,7 +11,7 @@ module Selection
        , Selection
        ) where
 
-import Base (D3(..),Value(..))
+import D3.Base (D3, Value)
 
 import Control.Monad.Eff (Eff)
 import Data.Function.Uncurried (Fn1, Fn2, Fn3, runFn1, runFn2, runFn3)

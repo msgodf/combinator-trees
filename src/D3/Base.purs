@@ -1,4 +1,4 @@
-module Base (D3,D3Eff,Value(..)) where
+module D3.Base (D3,D3Eff,Value(..)) where
 
 import Control.Monad.Eff (Eff)
 

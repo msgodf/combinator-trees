@@ -2,13 +2,13 @@ module Main ( main
             , drawTreeForExpression) where
 
 import Parsing as P
-import Base (D3,Value(..))
-import Selection (rootSelect,Selection,append',attr,selectAll,data',enter,style,text,insert)
-import Tree (TreeNodeData(..),tree,hierarchyChildren,runTree,descendants)
+import D3.Base (D3,Value(..))
+import D3.Selection (rootSelect,Selection,append',attr,selectAll,data',enter,style,text,insert)
+import D3.Tree (TreeNodeData(..),tree,hierarchyChildren,runTree,descendants)
 
 import Prelude (class Show, Unit, Void, bind, pure, show, ($), (<>), (*))
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Console (CONSOLE)
+import Control.Monad.Eff.Console (CONSOLE, log)
 import Data.Function.Uncurried (Fn1, runFn1)
 import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
@@ -47,10 +47,12 @@ fillBranchesAndLeaves f = case (runExcept ((read f) :: (F (BranchOrLeaf (Array (
   Right LeafNode -> "green"
   Right (BranchNode _) -> "red"
 
-drawTreeForExpression :: forall a e. String -> Eff (d3 :: D3 | e) a
+drawTreeForExpression :: forall e. String -> Eff (d3 :: D3, console :: CONSOLE | e) Unit
 drawTreeForExpression x = case (P.parseTreeExpression x) of
-  Left err -> drawTree $ write $ Branch (Leaf "Oh Dear") (Leaf ":(")
-  Right t -> drawTree $ write $ parseTreeToSimpleTree t
+  Left err -> log $ "Failed to parse expression " <> x <> ", because of error: " <> (show err)
+  Right t -> do
+                drawTree $ write $ parseTreeToSimpleTree t
+                log "Parsed"
 
 parseTreeToSimpleTree :: (P.Tree P.Symbol) -> (SimpleTree String)
 parseTreeToSimpleTree (P.Branch left right) = Branch (parseTreeToSimpleTree left) (parseTreeToSimpleTree right)

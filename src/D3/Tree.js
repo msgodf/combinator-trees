@@ -4,7 +4,7 @@
 
 var d3hierarchy = require("d3-hierarchy");
 
-// module Tree
+// module D3.Tree
 
 exports.treeImpl = function() {
     return function() {

@@ -1,7 +1,7 @@
-module Tree where
+module D3.Tree where
 
 import Prelude (bind,($),pure,(<>))
-import Base (D3)
+import D3.Base (D3)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Except (runExcept)
 import Data.Function.Uncurried (Fn0, runFn0, Fn1, runFn1, Fn2, runFn2)
