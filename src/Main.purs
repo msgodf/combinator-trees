@@ -2,7 +2,7 @@ module Main ( main
             , drawTreeForExpression) where
 
 import Parsing as P
-import Render (drawTree, parseTreeToSimpleTree,treeData)
+import Render (drawTree, treeData)
 import D3.Base (D3)
 
 import Prelude (Unit, bind, show, ($), (<>))
@@ -21,9 +21,8 @@ drawTreeForExpression :: forall e. String -> Eff (d3 :: D3, console :: CONSOLE |
 drawTreeForExpression x = case (P.parseTreeExpression x) of
   Left err -> log $ "Failed to parse expression " <> x <> ", because of error: " <> (show err)
   Right t -> do
-                drawTree $ write $ parseTreeToSimpleTree t
+                drawTree $ write t
                 log "Parsed"
-
 
 main :: forall a e. Eff (d3 :: D3, console :: CONSOLE | e) a
 main = drawTree treeData
