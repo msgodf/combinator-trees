@@ -71,7 +71,7 @@ drawTree treeData' = do
 
      treeMap <- tree
 
-     h <- hierarchyChildren treeData'  (\d -> d.children)
+     h <- hierarchyChildren treeData' (_.children)
 
      theTree <- runTree treeMap h
 

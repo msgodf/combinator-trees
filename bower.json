@@ -12,7 +12,8 @@
     "purescript-foreign": "^3.0.1",
     "purescript-transformers": "^2.1.0",
     "d3-selection": "^1.0.3",
-    "purescript-parsing": "^3.2.0"
+    "purescript-parsing": "^3.2.0",
+    "purescript-halogen": "^0.12.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^2.0.0"
