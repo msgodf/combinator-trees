@@ -8,6 +8,7 @@ module D3.Selection
        , selectAll
        , enter
        , text
+       , remove
        , Selection
        ) where
 
@@ -59,6 +60,11 @@ foreign import mergeImpl :: forall a b e. Fn2 a b (Eff (d3 :: D3 | e) a)
 
 merge :: forall a b e. a -> b -> Eff (d3 :: D3 | e) a
 merge = runFn2 mergeImpl
+
+foreign import removeImpl :: forall a e. Fn1 a (Eff (d3 :: D3 | e) a)
+
+remove :: forall a e. a -> Eff (d3 :: D3 | e) a
+remove = runFn1 removeImpl
 
 instance showSelect :: Show a => Show (Selection a) where
   show x = "Selection" <> (show x)

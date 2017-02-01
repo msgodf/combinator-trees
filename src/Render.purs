@@ -4,7 +4,7 @@ module Render ( treeData
 
 import Model
 
-import Prelude (bind, pure, show, (<>), (*))
+import Prelude (bind, pure, show, (<>), (*), (<$>))
 import Control.Monad.Eff (Eff)
 import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
@@ -14,7 +14,7 @@ import Data.Array (tail)
 import Control.Monad.Except (runExcept)
 import D3.Tree (TreeNodeData(..),tree,hierarchyChildren,runTree,descendants)
 import D3.Base (D3,Value(..))
-import D3.Selection (rootSelect, append', attr, selectAll, data', enter, style, text, insert)
+import D3.Selection (rootSelect, append', attr, selectAll, data', enter, style, text, insert, remove)
 
 -- This is used to match branch or leaf nodes passed to a callback
 data BranchOrLeaf a = LeafNode | BranchNode a
@@ -77,9 +77,13 @@ drawTree treeData' = do
 
      t <- descendants theTree
 
-     root <- rootSelect "div.drawing"
+     existing <- rootSelect "div > div.drawing > svg"
 
+     remove existing
+
+     root <- rootSelect "div > div.drawing"
      svg <- append' root "svg"
+
      attr svg "width" (ValString width)
      attr svg "height" (ValString height)
      gr <- append' svg "g"

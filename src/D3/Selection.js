@@ -79,3 +79,9 @@ exports.mergeImpl = function(x,y) {
 	x.merge(y);
     }
 }
+
+exports.removeImpl = function(x) {
+    return function() {
+	x.remove();
+    }
+}
