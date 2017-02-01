@@ -25,14 +25,22 @@ import Halogen.Util (runHalogenAff, awaitBody)
 type MyEffects eff = (console :: CONSOLE, d3 :: D3 | eff)
 
 type State = { errorMessage :: Maybe String
-             , tree :: Tree Symbol}
+             , tree :: Tree Symbol
+             , expression :: String}
 
 initialState :: State
 initialState = { errorMessage: Nothing
-               , tree: Leaf B}
+               , tree: Leaf B
+               , expression: ""}
+
+reduceTree :: Tree Symbol -> Tree Symbol
+reduceTree (Branch (Branch (Branch (Leaf B) x) y) z) = (Branch x (Branch y z)) -- Bluebird
+reduceTree (Branch x y) = (Branch (reduceTree x) y)
+reduceTree (Leaf x) = (Leaf x)
 
 data Query a
-  = ChangeExpression String a
+  = ChangeExpression String a |
+    ReduceTree a
 
 ui :: forall e. H.Component State Query (Aff (MyEffects e))
 ui = H.component { render, eval }
@@ -45,9 +53,12 @@ ui = H.component { render, eval }
         [ HP.class_ (HH.className "drawing") ] []
       , HH.p_
           [
-            HH.input [ (HP.inputType HP.InputText),
-                       (HE.onValueInput (HE.input ChangeExpression))
+            HH.input [ (HP.inputType HP.InputText)
+                     , (HE.onValueInput (HE.input ChangeExpression))
+                     , (HP.value n.expression)
                      ]
+          , HH.button [
+                       (HE.onClick (HE.input_ ReduceTree))] [HH.text "Reduce"]
           , HH.p [ HP.class_ (HH.className "error") ]
                  [ HH.text (maybe "" show n.errorMessage) ]
           ]
@@ -61,9 +72,16 @@ ui = H.component { render, eval }
         pure next
       Right tree -> do
             H.modify (_ { errorMessage=Nothing,
-                          tree=tree})
+                          tree=tree,
+                          expression=value})
             fromEff $ drawTree $ write tree
             pure next
+  eval (ReduceTree next) = do
+    H.modify (\state -> state { expression=(show state.tree)
+                              , tree=(reduceTree state.tree)})
+    state <- H.get
+    fromEff $ drawTree $ write state.tree
+    pure next
 
 main :: forall e. Eff (H.HalogenEffects (MyEffects e)) Unit
 main = runHalogenAff do
