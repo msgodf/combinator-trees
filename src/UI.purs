@@ -1,6 +1,7 @@
 module UI ( main
           , MyEffects) where
 
+import Model (Tree(..), Symbol(..))
 import Render (drawTree)
 import Parsing (parseTreeExpression)
 import D3.Base (D3)
@@ -23,10 +24,12 @@ import Halogen.Util (runHalogenAff, awaitBody)
 
 type MyEffects eff = (console :: CONSOLE, d3 :: D3 | eff)
 
-type State = { errorMessage :: Maybe String}
+type State = { errorMessage :: Maybe String
+             , tree :: Tree Symbol}
 
 initialState :: State
-initialState = { errorMessage: Nothing }
+initialState = { errorMessage: Nothing
+               , tree: Leaf B}
 
 data Query a
   = ChangeExpression String a
@@ -57,7 +60,8 @@ ui = H.component { render, eval }
         H.modify (_ { errorMessage=Just $ show parseError })
         pure next
       Right tree -> do
-            H.modify (_ { errorMessage=Nothing })
+            H.modify (_ { errorMessage=Nothing,
+                          tree=tree})
             fromEff $ drawTree $ write tree
             pure next
 
