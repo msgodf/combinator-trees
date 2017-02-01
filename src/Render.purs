@@ -4,7 +4,7 @@ module Render ( treeData
 
 import Model
 
-import Prelude (bind, pure, show, (<>), (*), (<$>))
+import Prelude (bind, pure, show, (<>), (*))
 import Control.Monad.Eff (Eff)
 import Data.Maybe (Maybe(..))
 import Data.Either (Either(..))
