@@ -68,7 +68,9 @@ ui = H.component { render, eval }
   eval (ChangeExpression value next) = do
     case (parseTreeExpression value) of
       Left parseError -> do
-        H.modify (_ { errorMessage=Just $ show parseError })
+        H.modify (_ { errorMessage=Just $ show parseError,
+                      expression=value
+                    })
         pure next
       Right tree -> do
             H.modify (_ { errorMessage=Nothing,
